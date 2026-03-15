@@ -1,32 +1,46 @@
 import logging
-
 import pandas as pd
 from zenml import step
 
+
 class IngestData:
     """
-    Data ingestion class which ingests data from the source and returns a DataFrame.
+    Data ingestion class which loads data from a CSV file.
     """
-    def __init__(self)->None:
-        """Initialize the data ingestion class."""
-        pass
 
-    def get_data(self)->pd.DataFrame:
-        df = pd.read_csv('./data/olist_customers_dataset.csv')
+    def __init__(self, data_path: str) -> None:
+        self.data_path = data_path
+
+    def get_data(self) -> pd.DataFrame:
+        """
+        Loads the dataset from the CSV file.
+
+        Returns:
+            pd.DataFrame: Loaded dataset
+        """
+        logging.info("Reading dataset from CSV file...")
+        df = pd.read_csv(self.data_path)
+
+        if df.empty:
+            raise ValueError("Loaded dataset is empty")
+
+        logging.info(f"Dataset loaded successfully with shape {df.shape}")
         return df
-    
+
+
 @step
-def ingest_data()->pd.DataFrame:
+def ingest_data() -> pd.DataFrame:
     """
-    Args:
-        None
+    ZenML step to ingest data.
+
     Returns:
-        df: pd.DataFrame
+        pd.DataFrame: Loaded dataset
     """
     try:
-        ingest_data = IngestData()
-        df = ingest_data.get_data()
+        ingestor = IngestData("./data/olist_customers_dataset.csv")
+        df = ingestor.get_data()
         return df
+
     except Exception as e:
-        logging.error(e)
-        raise e
+        logging.error(f"Error in data ingestion: {e}")
+        raise
